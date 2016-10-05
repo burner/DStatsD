@@ -1,0 +1,12 @@
+{
+	"name": "dstatsd",
+	"authors": [
+		"burner"
+	],
+	"description": "A Client for etsy statsd",
+	"copyright": "Copyright © 2016, burner",
+	"dependencies": {
+		"vibe-d:core": ">=0.7.30-rc.1"
+	},
+	"license": "LGPL3"
+}

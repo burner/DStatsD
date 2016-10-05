@@ -27,3 +27,9 @@
 *.exe
 *.out
 *.app
+
+.dub
+docs.json
+__dummy.html
+*.o
+*.obj
