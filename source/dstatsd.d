@@ -114,6 +114,26 @@ struct Set {
 	}
 }
 
+struct ScopeTimer {
+	import core.time;
+
+	string name;
+	StatsD service;
+	MonoTime begin;
+
+	this(string name, StatsD service) {
+		this.name = name;
+		this.service = service;
+		this.begin = MonoTime.currTime;
+	}
+
+	~this() {
+		this.service(Timer(this.name, 
+					(MonoTime.currTime - this.begin).total!"msecs"())
+		);
+	}
+
+}
 
 class StatsD {
 	private string address;
@@ -225,6 +245,9 @@ unittest {
 	auto s = new StatsD("127.0.0.1", 1234, "");
 	foreach(it; 0 .. 5) {
 		s(Counter("Foo", 2), Counter("Bar", -10), Timer("Time", 1337));
+	}
+	{
+		auto a = ScopeTimer("args", s);
 	}
 	sleep(dur!"msecs"(100));
 }
