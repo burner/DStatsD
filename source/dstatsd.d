@@ -233,18 +233,23 @@ unittest {
 
 unittest {
 	import std.stdio;
+	import std.random;
 	import core.time;
-	runTask({
+	/*runTask({
 		auto udp_listener = listenUDP(1234);
 		while(true) {
 			auto pack = udp_listener.recv();
 			writefln("Got packet: %s", cast(string)pack);
 		}
-	});
+	});*/
 
-	auto s = new StatsD("127.0.0.1", 1234, "");
-	foreach(it; 0 .. 5) {
-		s(Counter("Foo", 2), Counter("Bar", -10), Timer("Time", 1337));
+	auto s = new StatsD("127.0.0.1", 8125, "");
+	foreach(i; 0 .. 1000000) {
+		s(Counter("Foo"), 
+			Counter("Bar", uniform(-10,10)), 
+			Timer("Time", uniform(12,260))
+		);
+		sleep(dur!"msecs"(10));
 	}
 	{
 		auto a = ScopeTimer("args", s);
