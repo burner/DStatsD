@@ -1,7 +1,6 @@
 import dstatsd;
 
 import std.format : formattedWrite;
-import std.internal.scopebuffer;
 
 import vibe.core.core;
 import vibe.core.net;
@@ -162,54 +161,55 @@ class StatsD {
 	}
 
 	void opCall(Values...)(Values values) {
-		static assert(values.length > 0);
-		runTask({
-			FixedSizeArray!(char,256 * values.length) buf;
+		if(values.length == 0) {
+			return;
+		}
 
-			values[0].toString(buf[], this.prefix);
+		FixedSizeArray!(char,256 * values.length) buf;
 
-			foreach(ref it; values[1 .. $]) {
-				buf.insertBack('\n');
-				it.toString(buf[], this.prefix);
-			}
+		values[0].toString(buf[], this.prefix);
 
-			try {
-				this.connection.send(cast(ubyte[])(buf));
-			} catch(Exception e) {
-				this.handleException(e);
-			}
-		});
+		foreach(ref it; values[1 .. $]) {
+			buf.insertBack('\n');
+			it.toString(buf[], this.prefix);
+		}
+
+		try {
+			this.connection.send(cast(ubyte[])(buf));
+		} catch(Exception e) {
+			this.handleException(e);
+		}
 	}
 
-	void inc(const string name, const long value = 1, 
-			const double sampleRate = double.nan) 
+	final void inc(const string name, const long value = 1, 
+			const double sampleRate = double.nan)
 	{
 		this.opCall(Counter(name, value, sampleRate));
 	}
 
-	void dec(const string name, const long value = -1, 
+	final void dec(const string name, const long value = -1, 
 			const double sampleRate = double.nan) 
 	{
 		this.inc(name, value);
 	}
 
-	void set(const string name, const long value) {
+	final void set(const string name, const long value) {
 		this.opCall(Set(name, value));
 	}
 
-	void meter(const string name, const ulong value) {
+	final void meter(const string name, const ulong value) {
 		this.opCall(Set(name, value));
 	}
 
-	void histo(const string name, const ulong value) {
+	final void histo(const string name, const ulong value) {
 		this.opCall(Histogram(name, value));
 	}
 
-	void time(const string name, const ulong time) {
+	final void time(const string name, const ulong time) {
 		this.opCall(Timer(name, time));
 	}
 
-	void gauge(const string name, const ulong value) {
+	final void gauge(const string name, const ulong value) {
 		this.opCall(Gauge(name, value));
 	}
 
@@ -235,24 +235,27 @@ unittest {
 	import std.stdio;
 	import std.random;
 	import core.time;
-	/*runTask({
+	runTask({
 		auto udp_listener = listenUDP(1234);
 		while(true) {
 			auto pack = udp_listener.recv();
 			writefln("Got packet: %s", cast(string)pack);
+			assert((cast(string)pack).length > 0);
 		}
-	});*/
+	});
+	sleep(dur!"msecs"(100));
 
-	auto s = new StatsD("127.0.0.1", 8125, "");
-	foreach(i; 0 .. 1000000) {
+	auto s = new StatsD("127.0.0.1", 1234, "");
+	foreach(i; 0 .. 20000) {
 		s(Counter("Foo"), 
 			Counter("Bar", uniform(-10,10)), 
 			Timer("Time", uniform(12,260))
 		);
-		sleep(dur!"msecs"(10));
+		//sleep(dur!"msecs"(2));
 	}
 	{
 		auto a = ScopeTimer("args", s);
+		sleep(dur!"msecs"(10));
 	}
 	sleep(dur!"msecs"(100));
 }
