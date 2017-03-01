@@ -7,7 +7,7 @@
 	"copyright": "Copyright © 2016, burner",
 	"dependencies": {
 		"vibe-d:core": ">=0.7.30-rc.1",
-		"fixedsizearray": "~>0.0.1"
+		"stringbuffer": ">=1.0.0"
 	},
 	"license": "LGPL3"
 }

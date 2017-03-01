@@ -5,8 +5,6 @@ import std.format : formattedWrite;
 import vibe.core.core;
 import vibe.core.net;
 
-import fixedsizearray;
-
 struct Counter {
 	const string name;
 	const long change;
@@ -161,21 +159,24 @@ class StatsD {
 	}
 
 	void opCall(Values...)(Values values) {
+		import stringbuffer;
+
 		if(values.length == 0) {
 			return;
 		}
 
-		FixedSizeArray!(char,256 * values.length) buf;
+		//FixedSizeArray!(char,256 * values.length) buf;
+		StringBuffer buf;
 
-		values[0].toString(buf[], this.prefix);
+		values[0].toString(buf.writer(), this.prefix);
 
 		foreach(ref it; values[1 .. $]) {
 			buf.insertBack('\n');
-			it.toString(buf[], this.prefix);
+			it.toString(buf.writer(), this.prefix);
 		}
 
 		try {
-			this.connection.send(cast(ubyte[])(buf));
+			this.connection.send(buf.getData!(ubyte[])());
 		} catch(Exception e) {
 			this.handleException(e);
 		}
@@ -216,18 +217,20 @@ class StatsD {
 }
 
 unittest {
+	import stringbuffer;
+
 	{
-		FixedSizeArray!(char,128) textbuf;
+		StringBuffer textbuf;
 		string h = "Hello World";
-		formattedWrite(textbuf[], h);
-		assert(cast(string)textbuf == h, cast(string)textbuf);
+		formattedWrite(textbuf.writer(), h);
+		assert(textbuf.getData() == h, textbuf.getData());
 	}
 	{
-		FixedSizeArray!(char,128) textbuf;
+		StringBuffer textbuf;
 		string h = "Hello World %s";
 		string t = "Hello World 10";
-		formattedWrite(textbuf[], h, 10);
-		assert(cast(string)textbuf == t, cast(string)textbuf);
+		formattedWrite(textbuf.writer(), h, 10);
+		assert(textbuf.getData() == t, textbuf.getData());
 	}
 }
 
