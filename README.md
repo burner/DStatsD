@@ -1,5 +1,5 @@
 # DStatsD
-![alt text](https://travis-ci.org/burner/dstatsd.svg?branch=master)
+[![Build Status](https://travis-ci.org/burner/DStatsD.svg?branch=master)](https://travis-ci.org/burner/DStatsD)
 
 A fast, memory efficent, vibe.d compatible client for etsy's statsd.
 
